@@ -20,6 +20,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useThread } from "@/hooks/use-threads";
+import { ViewSwitcher } from "./view-switcher";
+import { ChatDisplay } from "./chat-display";
 import MailDisplay from "./mail-display";
 import { useMail } from "./use-mail";
 import { Badge } from "../ui/badge";
@@ -41,6 +43,7 @@ export function ThreadDisplay({ mail, onClose, isMobile }: ThreadDisplayProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [view, setView] = useState<"normal" | "chat">("normal");
 
   useEffect(() => {
     if (emailData) {
@@ -134,6 +137,7 @@ export function ThreadDisplay({ mail, onClose, isMobile }: ThreadDisplayProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ViewSwitcher view={view} onViewChange={setView} />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -213,21 +217,33 @@ export function ThreadDisplay({ mail, onClose, isMobile }: ThreadDisplayProps) {
           </div>
         </div>
 
-        <div className="h-full space-y-4 overflow-y-scroll">
-          {[...(emailData || [])].reverse().map((message, index) => (
-            <div
-              key={message.id}
-              className={cn("transition-all duration-200", index > 0 && "border-t border-border")}
-            >
-              <MailDisplay
-                emailData={message}
-                isFullscreen={isFullscreen}
-                isMuted={isMuted}
-                isLoading={isLoading}
-                index={index}
-              />
+        <div className="h-full overflow-y-scroll">
+          {view === "normal" ? (
+            <div className="space-y-4">
+              {[...(emailData || [])].reverse().map((message, index) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "transition-all duration-200",
+                    index > 0 && "border-t border-border",
+                  )}
+                >
+                  <MailDisplay
+                    emailData={message}
+                    isFullscreen={isFullscreen}
+                    isMuted={isMuted}
+                    isLoading={isLoading}
+                    index={index}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <ChatDisplay
+              emailData={[...(emailData || [])].reverse()}
+              className={cn(isFullscreen && "pt-0")}
+            />
+          )}
         </div>
 
         {!isFullscreen && (
